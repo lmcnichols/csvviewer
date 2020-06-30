@@ -477,8 +477,8 @@
         "affectsGlobalScope": false
       },
       "./src/model.ts": {
-        "version": "9d31cf91c2772bb1fdb9fafc8dd974b7b9f3d9d1d59c6084cf1875f7d4707213",
-        "signature": "1b6576904bb026a8d98d28bff355c2a98c962763f7d6dda85634aaadaa1fcccf",
+        "version": "b78a75b3b4e4e92bd63daf6a7d1e89f434c571fac072561e7236c68e258702f0",
+        "signature": "70e6850620051610f8316143f7f134b371948894a56b0bfd384104629c9b2777",
         "affectsGlobalScope": false
       },
       "./node_modules/@jupyterlab/apputils/lib/clipboard.d.ts": {
@@ -5008,6 +5008,7 @@
         "./src/widget.ts"
       ],
       "./src/model.ts": [
+        "./node_modules/@lumino/coreutils/types/index.d.ts",
         "./node_modules/@lumino/datagrid/lib/index.d.ts",
         "./node_modules/@lumino/disposable/types/index.d.ts"
       ],
