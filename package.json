@@ -31,7 +31,7 @@
     "build": "tsc -b",
     "clean": "rimraf lib",
     "docs": "typedoc src",
-    "prepare": "npm run build",
+    "prepare": "jlpm run build",
     "watch": "tsc -b --watch"
   },
 
