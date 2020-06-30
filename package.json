@@ -28,14 +28,15 @@
     "lib": "lib/"
   },
   "scripts": {
-    "clean": "rimraf lib tsconfig.tsbuildinfo",
-    "eslint": "eslint . --ext .ts,.tsx --fix",
-    "eslint:check": "eslint . --ext .ts,.tsx",
-    "watch": "tsc -w"
+    "build": "tsc -b",
+    "clean": "rimraf lib",
+    "docs": "typedoc src",
+    "prepublishOnly": "npm run build",
+    "watch": "tsc -b --watch"
   },
 
   
-  "peerDependencies": { 
+  "dependencies": { 
     "@jupyterlab/csvviewer-extension": "^2.1.2",
     "@jupyterlab/mainmenu": "^2.1.1",
     "@lumino/datagrid": "^0.6.0",
@@ -51,14 +52,9 @@
     "@lumino/widgets": "^1.11.1"
   },
   "devDependencies": {
-    "@types/jest": "^24.0.23",
-    "canvas": "^2.6.1",
-    "csv-spectrum": "^1.0.0",
-    "jest": "^25.2.3",
     "rimraf": "~3.0.0",
-    "ts-jest": "^25.2.1",
-    "typedoc": "^0.17.7",
-    "typescript": "~3.9.2"
+    "typedoc": "^0.15.4",
+    "typescript": "~3.7.3"
   },
   "publishConfig": {
     "access": "public"
