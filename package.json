@@ -37,7 +37,7 @@
   },
 
   
-  "dependencies": { 
+  "peerDependencies": { 
     "@jupyterlab/apputils": "^3.0.0-alpha.0",
     "@jupyterlab/coreutils": "^5.0.0-alpha.0",
     "@jupyterlab/docregistry": "^3.0.0-alpha.0",
