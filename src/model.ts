@@ -1,7 +1,7 @@
 // Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-import { DataModel } from '@lumino/datagrid';
+import { MutableDataModel, DataModel } from '@lumino/datagrid';
 
 import { IDisposable } from '@lumino/disposable';
 
@@ -36,7 +36,7 @@ const PARSERS: { [key: string]: IParser } = {
  * #### Notes
  * This model handles data with up to 2**32 characters.
  */
-export class DSVModel extends DataModel implements IDisposable {
+export class DSVModel extends MutableDataModel implements IDisposable {
   /**
    * Create a data model with static CSV data.
    *
@@ -91,6 +91,9 @@ export class DSVModel extends DataModel implements IDisposable {
       this._header = h;
     }
   }
+  setData(region: DataModel.CellRegion, row: number, column: number, value: any): boolean {
+    return true 
+}
 
   /**
    * Whether this model has been disposed.
