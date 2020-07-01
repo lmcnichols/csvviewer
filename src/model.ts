@@ -226,7 +226,7 @@ export class DSVModel extends MutableDataModel implements IDisposable {
    * incrementally higher endRow. Rows that have already been parsed will not be
    * parsed again.
    */
-  protected _computeRowOffsets(endRow = 4294967295): void {
+  public _computeRowOffsets(endRow = 4294967295): void {
     // If we've already parsed up to endRow, or if we've already parsed the
     // entire data set, return early.
     if (this._rowCount! >= endRow || this._doneParsing === true) {
@@ -344,7 +344,7 @@ export class DSVModel extends MutableDataModel implements IDisposable {
    * @param column - The column number of the data item.
    * @returns The parsed string for the data item.
    */
-  protected _getField(row: number, column: number): string {
+  public _getField(row: number, column: number): string {
     // Declare local variables.
     let value: string;
     let nextIndex;
@@ -418,7 +418,7 @@ export class DSVModel extends MutableDataModel implements IDisposable {
    * @param column - The column of the data item.
    * @returns - The index into the data string where the data item starts.
    */
-  protected _getOffsetIndex(row: number, column: number): number {
+  public _getOffsetIndex(row: number, column: number): number {
     // Declare local variables.
     const ncols = this._columnCount!;
 
@@ -473,7 +473,7 @@ export class DSVModel extends MutableDataModel implements IDisposable {
    * we parse the first 500 rows to get something up on the screen, then we
    * parse the full data string asynchronously.
    */
-  protected _parseAsync(): void {
+  public _parseAsync(): void {
     // Number of rows to get initially.
     let currentRows = this._initialRows;
 
@@ -542,7 +542,7 @@ export class DSVModel extends MutableDataModel implements IDisposable {
   /**
    * Reset the parser state.
    */
-  protected _resetParser(): void {
+  public _resetParser(): void {
     this._columnCount = undefined;
 
     // First row offset is *always* 0, so we always have the first row offset.
@@ -577,7 +577,7 @@ export class DSVModel extends MutableDataModel implements IDisposable {
    * @param value the value typed at the keyboard
    */
 
-  protected _setField(row: number, column: number, value: string): void {
+  public _setField(row: number, column: number, value: string): void {
     let nextIndex;
 
     // Find the index for the first character in the field.
@@ -635,22 +635,22 @@ export class DSVModel extends MutableDataModel implements IDisposable {
   }
 
   // Parser settings
-  protected _delimiter: string;
-  protected _quote: string;
-  protected _quoteEscaped: RegExp;
-  protected _parser: 'quotes' | 'noquotes';
-  protected _rowDelimiter: string;
+  public _delimiter: string;
+  public _quote: string;
+  public _quoteEscaped: RegExp;
+  public _parser: 'quotes' | 'noquotes';
+  public _rowDelimiter: string;
 
   // Data values
-  protected _data: string;
-  protected _rowCount: number | undefined = 1;
-  protected _columnCount: number | undefined;
+  public _data: string;
+  public _rowCount: number | undefined = 1;
+  public _columnCount: number | undefined;
 
   // Cache information
   /**
    * The header strings.
    */
-  protected _header: string[] = [];
+  public _header: string[] = [];
   /**
    * The column offset cache, starting with row _columnOffsetsStartingRow
    *
@@ -658,31 +658,31 @@ export class DSVModel extends MutableDataModel implements IDisposable {
    * The index of the first character in the data string for row r, column c is
    * _columnOffsets[(r-this._columnOffsetsStartingRow)*numColumns+c]
    */
-  protected _columnOffsets: Uint32Array = new Uint32Array(0);
+  public _columnOffsets: Uint32Array = new Uint32Array(0);
   /**
    * The row that _columnOffsets[0] represents.
    */
-  protected _columnOffsetsStartingRow: number = 0;
+  public _columnOffsetsStartingRow: number = 0;
   /**
    * The maximum number of rows to parse when there is a cache miss.
    */
-  protected _maxCacheGet: number = 1000;
+  public _maxCacheGet: number = 1000;
   /**
    * The index for the start of each row.
    */
-  protected _rowOffsets: Uint32Array = new Uint32Array(1);
+  public _rowOffsets: Uint32Array = new Uint32Array(1);
   /**
    * The number of rows to parse initially before doing a delayed parse of the
    * entire data.
    */
-  protected _initialRows: number;
+  public _initialRows: number;
 
   // Bookkeeping variables.
-  protected _delayedParse: number | null = null;
-  protected _startedParsing: boolean = false;
-  protected _doneParsing: boolean = false;
-  protected _isDisposed: boolean = false;
-  protected _ready = new PromiseDelegate<void>();
+  public _delayedParse: number | null = null;
+  public _startedParsing: boolean = false;
+  public _doneParsing: boolean = false;
+  public _isDisposed: boolean = false;
+  public _ready = new PromiseDelegate<void>();
 }
 
 /**
