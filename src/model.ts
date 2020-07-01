@@ -540,37 +540,6 @@ export class DSVModel extends MutableDataModel implements IDisposable {
   }
 
   /**
-   * Reset the parser state.
-   */
-  public _resetParser(): void {
-    this._columnCount = undefined;
-
-    // First row offset is *always* 0, so we always have the first row offset.
-    this._rowOffsets = new Uint32Array(1);
-    this._rowCount = 1;
-    this._startedParsing = false;
-
-    this._columnOffsets = new Uint32Array(0);
-
-    // Clear out state associated with the asynchronous parsing.
-    if (this._doneParsing === false) {
-      // Explicitly catch this rejection at least once so an error is not thrown
-      // to the console.
-      this.ready.catch(() => {
-        return;
-      });
-      this._ready.reject(undefined);
-    }
-    this._doneParsing = false;
-    this._ready = new PromiseDelegate<void>();
-    if (this._delayedParse !== null) {
-      window.clearTimeout(this._delayedParse);
-      this._delayedParse = null;
-    }
-
-    this.emitChanged({ type: 'model-reset' });
-  }
-  /**
    * 
    * @param row the row being edited
    * @param column the column being edited
@@ -629,10 +598,43 @@ export class DSVModel extends MutableDataModel implements IDisposable {
       trimRight += 1;
     }
     this._data = (this._data.slice(0, index + trimLeft)
-      + this._data.slice(index + trimLeft, nextIndex - trimRight)
+      + value
       + this._data.slice(nextIndex - trimRight, this._data.length)
     )
   }
+
+  /**
+   * Reset the parser state.
+   */
+  public _resetParser(): void {
+    this._columnCount = undefined;
+
+    // First row offset is *always* 0, so we always have the first row offset.
+    this._rowOffsets = new Uint32Array(1);
+    this._rowCount = 1;
+    this._startedParsing = false;
+
+    this._columnOffsets = new Uint32Array(0);
+
+    // Clear out state associated with the asynchronous parsing.
+    if (this._doneParsing === false) {
+      // Explicitly catch this rejection at least once so an error is not thrown
+      // to the console.
+      this.ready.catch(() => {
+        return;
+      });
+      this._ready.reject(undefined);
+    }
+    this._doneParsing = false;
+    this._ready = new PromiseDelegate<void>();
+    if (this._delayedParse !== null) {
+      window.clearTimeout(this._delayedParse);
+      this._delayedParse = null;
+    }
+
+    this.emitChanged({ type: 'model-reset' });
+  }
+  
 
   // Parser settings
   public _delimiter: string;
