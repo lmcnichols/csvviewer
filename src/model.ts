@@ -1,7 +1,7 @@
 // Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-import { MutableDataModel, DataModel } from '@lumino/datagrid';
+import { DataModel } from '@lumino/datagrid';
 
 import { IDisposable } from '@lumino/disposable';
 
@@ -11,7 +11,6 @@ import { parseDSV, parseDSVNoQuotes, IParser } from './parse';
 
 /*
 Possible ideas for further implementation:
-
 - Show a spinner or something visible when we are doing delayed parsing.
 - The cache right now handles scrolling down great - it gets the next several hundred rows. However, scrolling up causes lots of cache misses - each new row causes a flush of the cache. When invalidating an entire cache, we should put the requested row in middle of the cache (adjusting for rows at the beginning or end). When populating a cache, we should retrieve rows both above and below the requested row.
 - When we have a header, and we are guessing the parser to use, try checking just the part of the file *after* the header row for quotes. I think often a first header row is quoted, but the rest of the file is not and can be parsed much faster.
@@ -36,7 +35,7 @@ const PARSERS: { [key: string]: IParser } = {
  * #### Notes
  * This model handles data with up to 2**32 characters.
  */
-export class DSVModel extends MutableDataModel implements IDisposable {
+export class DSVModel extends DataModel implements IDisposable {
   /**
    * Create a data model with static CSV data.
    *
@@ -53,9 +52,9 @@ export class DSVModel extends MutableDataModel implements IDisposable {
       header = true,
       initialRows = 500
     } = options;
-    this._data = data;
-    this._delimiter = delimiter;
-    this._quote = quote;
+    this.rawData = data;
+    this.delimiter = delimiter;
+    this.quote = quote;
     this._quoteEscaped = new RegExp(quote + quote, 'g');
     this._initialRows = initialRows;
 
@@ -71,7 +70,7 @@ export class DSVModel extends MutableDataModel implements IDisposable {
         rowDelimiter = '\r';
       }
     }
-    this._rowDelimiter = rowDelimiter;
+    this.rowDelimiter = rowDelimiter;
 
     if (quoteParser === undefined) {
       // Check for the existence of quotes if the quoteParser is not set.
@@ -80,7 +79,7 @@ export class DSVModel extends MutableDataModel implements IDisposable {
     this._parser = quoteParser ? 'quotes' : 'noquotes';
 
     // Parse the data.
-    this._parseAsync();
+    this.parseAsync();
 
     // Cache the header row.
     if (header === true && this._columnCount! > 0) {
@@ -88,11 +87,8 @@ export class DSVModel extends MutableDataModel implements IDisposable {
       for (let c = 0; c < this._columnCount!; c++) {
         h.push(this._getField(0, c));
       }
-      this._header = h;
+      this.header = h;
     }
-  }
-  setData(region: DataModel.CellRegion, row: number, column: number, value: any): boolean {
-    return true
   }
 
   /**
@@ -118,7 +114,7 @@ export class DSVModel extends MutableDataModel implements IDisposable {
    */
   rowCount(region: DataModel.RowRegion): number {
     if (region === 'body') {
-      if (this._header.length === 0) {
+      if (this.header.length === 0) {
         return this._rowCount!;
       } else {
         return this._rowCount! - 1;
@@ -158,17 +154,17 @@ export class DSVModel extends MutableDataModel implements IDisposable {
     // Look up the field and value for the region.
     switch (region) {
       case 'body':
-        if (this._header.length === 0) {
+        if (this.header.length === 0) {
           value = this._getField(row, column);
         } else {
           value = this._getField(row + 1, column);
         }
         break;
       case 'column-header':
-        if (this._header.length === 0) {
+        if (this.header.length === 0) {
           value = (column + 1).toString();
         } else {
-          value = this._header[column];
+          value = this.header[column];
         }
         break;
       case 'row-header':
@@ -199,7 +195,7 @@ export class DSVModel extends MutableDataModel implements IDisposable {
     this._rowCount = undefined;
     this._rowOffsets = null!;
     this._columnOffsets = null!;
-    this._data = null!;
+    this.rawData = null!;
 
     // Clear out state associated with the asynchronous parsing.
     if (this._doneParsing === false) {
@@ -226,7 +222,7 @@ export class DSVModel extends MutableDataModel implements IDisposable {
    * incrementally higher endRow. Rows that have already been parsed will not be
    * parsed again.
    */
-  _computeRowOffsets(endRow = 4294967295): void {
+  private _computeRowOffsets(endRow = 4294967295): void {
     // If we've already parsed up to endRow, or if we've already parsed the
     // entire data set, return early.
     if (this._rowCount! >= endRow || this._doneParsing === true) {
@@ -237,10 +233,10 @@ export class DSVModel extends MutableDataModel implements IDisposable {
     if (this._columnCount === undefined) {
       // Get number of columns in first row
       this._columnCount = PARSERS[this._parser]({
-        data: this._data,
-        delimiter: this._delimiter,
-        rowDelimiter: this._rowDelimiter,
-        quote: this._quote,
+        data: this.rawData,
+        delimiter: this.delimiter,
+        rowDelimiter: this.rowDelimiter,
+        quote: this.quote,
         columnOffsets: true,
         maxRows: 1
       }).ncols;
@@ -249,11 +245,11 @@ export class DSVModel extends MutableDataModel implements IDisposable {
     // Parse the data up to and including the requested row, starting from the
     // last row offset we have.
     const { nrows, offsets } = PARSERS[this._parser]({
-      data: this._data,
+      data: this.rawData,
       startIndex: this._rowOffsets[this._rowCount! - 1],
-      delimiter: this._delimiter,
-      rowDelimiter: this._rowDelimiter,
-      quote: this._quote,
+      delimiter: this.delimiter,
+      rowDelimiter: this.rowDelimiter,
+      quote: this.quote,
       columnOffsets: false,
       maxRows: endRow - this._rowCount! + 1
     });
@@ -326,7 +322,7 @@ export class DSVModel extends MutableDataModel implements IDisposable {
 
     // We have more rows than before, so emit the rows-inserted change signal.
     let firstIndex = oldRowCount;
-    if (this._header.length > 0) {
+    if (this.header.length > 0) {
       firstIndex -= 1;
     }
     this.emitChanged({
@@ -344,13 +340,13 @@ export class DSVModel extends MutableDataModel implements IDisposable {
    * @param column - The column number of the data item.
    * @returns The parsed string for the data item.
    */
-  _getField(row: number, column: number): string {
+  private _getField(row: number, column: number): string {
     // Declare local variables.
     let value: string;
     let nextIndex;
 
     // Find the index for the first character in the field.
-    const index = this._getOffsetIndex(row, column);
+    const index = this.getOffsetIndex(row, column);
 
     // Initialize the trim adjustments.
     let trimRight = 0;
@@ -363,47 +359,47 @@ export class DSVModel extends MutableDataModel implements IDisposable {
       // Check if we are getting any row but the last.
       if (row < this._rowCount! - 1) {
         // Set the next offset to the next row, column 0.
-        nextIndex = this._getOffsetIndex(row + 1, 0);
+        nextIndex = this.getOffsetIndex(row + 1, 0);
 
         // Since we are not at the last row, we need to trim off the row
         // delimiter.
-        trimRight += this._rowDelimiter.length;
+        trimRight += this.rowDelimiter.length;
       } else {
         // We are getting the last data item, so the slice end is the end of the
         // data string.
-        nextIndex = this._data.length;
+        nextIndex = this.rawData.length;
 
         // The string may or may not end in a row delimiter (RFC 4180 2.2), so
         // we explicitly check if we should trim off a row delimiter.
         if (
-          this._data[nextIndex - 1] ===
-          this._rowDelimiter[this._rowDelimiter.length - 1]
+          this.rawData[nextIndex - 1] ===
+          this.rowDelimiter[this.rowDelimiter.length - 1]
         ) {
-          trimRight += this._rowDelimiter.length;
+          trimRight += this.rowDelimiter.length;
         }
       }
     } else {
       // The next field starts at the next column offset.
-      nextIndex = this._getOffsetIndex(row, column + 1);
+      nextIndex = this.getOffsetIndex(row, column + 1);
 
       // Trim off the delimiter if it exists at the end of the field
-      if (index < nextIndex && this._data[nextIndex - 1] === this._delimiter) {
+      if (index < nextIndex && this.rawData[nextIndex - 1] === this.delimiter) {
         trimRight += 1;
       }
     }
 
     // Check to see if the field begins with a quote. If it does, trim a quote on either side.
-    if (this._data[index] === this._quote) {
+    if (this.rawData[index] === this.quote) {
       trimLeft += 1;
       trimRight += 1;
     }
 
     // Slice the actual value out of the data string.
-    value = this._data.slice(index + trimLeft, nextIndex - trimRight);
+    value = this.rawData.slice(index + trimLeft, nextIndex - trimRight);
 
     // If we have a quoted field and we have an escaped quote inside it, unescape it.
-    if (trimLeft === 1 && value.indexOf(this._quote) !== -1) {
-      value = value.replace(this._quoteEscaped, this._quote);
+    if (trimLeft === 1 && value.indexOf(this.quote) !== -1) {
+      value = value.replace(this._quoteEscaped, this.quote);
     }
 
     // Return the value.
@@ -418,7 +414,7 @@ export class DSVModel extends MutableDataModel implements IDisposable {
    * @param column - The column of the data item.
    * @returns - The index into the data string where the data item starts.
    */
-  _getOffsetIndex(row: number, column: number): number {
+  protected getOffsetIndex(row: number, column: number): number {
     // Declare local variables.
     const ncols = this._columnCount!;
 
@@ -445,10 +441,10 @@ export class DSVModel extends MutableDataModel implements IDisposable {
 
       // Parse the data to get the column offsets.
       const { offsets } = PARSERS[this._parser]({
-        data: this._data,
-        delimiter: this._delimiter,
-        rowDelimiter: this._rowDelimiter,
-        quote: this._quote,
+        data: this.rawData,
+        delimiter: this.delimiter,
+        rowDelimiter: this.rowDelimiter,
+        quote: this.quote,
         columnOffsets: true,
         maxRows: maxRows,
         ncols: ncols,
@@ -473,7 +469,7 @@ export class DSVModel extends MutableDataModel implements IDisposable {
    * we parse the first 500 rows to get something up on the screen, then we
    * parse the full data string asynchronously.
    */
-  _parseAsync(): void {
+  protected parseAsync(): void {
     // Number of rows to get initially.
     let currentRows = this._initialRows;
 
@@ -540,74 +536,9 @@ export class DSVModel extends MutableDataModel implements IDisposable {
   }
 
   /**
-   * 
-   * @param row the row being edited
-   * @param column the column being edited
-   * @param value the value typed at the keyboard
-   */
-
-  // _setField(row: number, column: number, value: string): void {
-  //   let nextIndex;
-
-  //   // Find the index for the first character in the field.
-  //   const index = this._getOffsetIndex(row, column);
-
-  //   // Initialize the trim adjustments.
-  //   let trimRight = 0;
-  //   let trimLeft = 0;
-
-  //   // Find the end of the slice (the start of the next field), and how much we
-  //   // should adjust to trim off a trailing field or row delimiter. First check
-  //   // if we are getting the last column.
-  //   if (column === this._columnCount! - 1) {
-  //     // Check if we are getting any row but the last.
-  //     if (row < this._rowCount! - 1) {
-  //       // Set the next offset to the next row, column 0.
-  //       nextIndex = this._getOffsetIndex(row + 1, 0);
-
-  //       // Since we are not at the last row, we need to trim off the row
-  //       // delimiter.
-  //       trimRight += this._rowDelimiter.length;
-  //     } else {
-  //       // We are getting the last data item, so the slice end is the end of the
-  //       // data string.
-  //       nextIndex = this._data.length;
-
-  //       // The string may or may not end in a row delimiter (RFC 4180 2.2), so
-  //       // we explicitly check if we should trim off a row delimiter.
-  //       if (
-  //         this._data[nextIndex - 1] ===
-  //         this._rowDelimiter[this._rowDelimiter.length - 1]
-  //       ) {
-  //         trimRight += this._rowDelimiter.length;
-  //       }
-  //     }
-  //   } else {
-  //     // The next field starts at the next column offset.
-  //     nextIndex = this._getOffsetIndex(row, column + 1);
-
-  //     // Trim off the delimiter if it exists at the end of the field
-  //     if (index < nextIndex && this._data[nextIndex - 1] === this._delimiter) {
-  //       trimRight += 1;
-  //     }
-  //   }
-
-  //   // Check to see if the field begins with a quote. If it does, trim a quote on either side.
-  //   if (this._data[index] === this._quote) {
-  //     trimLeft += 1;
-  //     trimRight += 1;
-  //   }
-  //   this._data = (this._data.slice(0, index + trimLeft)
-  //     + value
-  //     + this._data.slice(nextIndex - trimRight, this._data.length)
-  //   )
-  //   this._parseAsync()
-  // }
-
-  /**
    * Reset the parser state.
    */
-  _resetParser(): void {
+  private _resetParser(): void {
     this._columnCount = undefined;
 
     // First row offset is *always* 0, so we always have the first row offset.
@@ -636,24 +567,23 @@ export class DSVModel extends MutableDataModel implements IDisposable {
     this.emitChanged({ type: 'model-reset' });
   }
 
-
   // Parser settings
-  _delimiter: string;
-  _quote: string;
-  _quoteEscaped: RegExp;
-  _parser: 'quotes' | 'noquotes';
-  _rowDelimiter: string;
+  protected delimiter: string;
+  protected quote: string;
+  private _quoteEscaped: RegExp;
+  private _parser: 'quotes' | 'noquotes';
+  protected rowDelimiter: string;
 
   // Data values
-  _data: string;
-  _rowCount: number | undefined = 1;
-  _columnCount: number | undefined;
+  protected rawData: string;
+  private _rowCount: number | undefined = 1;
+  private _columnCount: number | undefined;
 
   // Cache information
   /**
    * The header strings.
    */
-  _header: string[] = [];
+  protected header: string[] = [];
   /**
    * The column offset cache, starting with row _columnOffsetsStartingRow
    *
@@ -661,31 +591,31 @@ export class DSVModel extends MutableDataModel implements IDisposable {
    * The index of the first character in the data string for row r, column c is
    * _columnOffsets[(r-this._columnOffsetsStartingRow)*numColumns+c]
    */
-  _columnOffsets: Uint32Array = new Uint32Array(0);
+  private _columnOffsets: Uint32Array = new Uint32Array(0);
   /**
    * The row that _columnOffsets[0] represents.
    */
-  _columnOffsetsStartingRow: number = 0;
+  private _columnOffsetsStartingRow: number = 0;
   /**
    * The maximum number of rows to parse when there is a cache miss.
    */
-  _maxCacheGet: number = 1000;
+  private _maxCacheGet: number = 1000;
   /**
    * The index for the start of each row.
    */
-  _rowOffsets: Uint32Array = new Uint32Array(1);
+  private _rowOffsets: Uint32Array = new Uint32Array(1);
   /**
    * The number of rows to parse initially before doing a delayed parse of the
    * entire data.
    */
-  _initialRows: number;
+  private _initialRows: number;
 
   // Bookkeeping variables.
-  _delayedParse: number | null = null;
-  _startedParsing: boolean = false;
-  _doneParsing: boolean = false;
-  _isDisposed: boolean = false;
-  _ready = new PromiseDelegate<void>();
+  private _delayedParse: number | null = null;
+  private _startedParsing: boolean = false;
+  private _doneParsing: boolean = false;
+  private _isDisposed: boolean = false;
+  private _ready = new PromiseDelegate<void>();
 }
 
 /**
