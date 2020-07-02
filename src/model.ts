@@ -414,7 +414,7 @@ export class DSVModel extends DataModel implements IDisposable {
    * @param column - The column of the data item.
    * @returns - The index into the data string where the data item starts.
    */
-  protected getOffsetIndex(row: number, column: number): number {
+  getOffsetIndex(row: number, column: number): number {
     // Declare local variables.
     const ncols = this._columnCount!;
 
@@ -469,7 +469,7 @@ export class DSVModel extends DataModel implements IDisposable {
    * we parse the first 500 rows to get something up on the screen, then we
    * parse the full data string asynchronously.
    */
-  protected parseAsync(): void {
+  parseAsync(): void {
     // Number of rows to get initially.
     let currentRows = this._initialRows;
 
@@ -568,14 +568,14 @@ export class DSVModel extends DataModel implements IDisposable {
   }
 
   // Parser settings
-  protected delimiter: string;
-  protected quote: string;
+  delimiter: string;
+  quote: string;
   private _quoteEscaped: RegExp;
   private _parser: 'quotes' | 'noquotes';
-  protected rowDelimiter: string;
+  rowDelimiter: string;
 
   // Data values
-  protected rawData: string;
+  rawData: string;
   private _rowCount: number | undefined = 1;
   private _columnCount: number | undefined;
 
@@ -583,7 +583,7 @@ export class DSVModel extends DataModel implements IDisposable {
   /**
    * The header strings.
    */
-  protected header: string[] = [];
+  header: string[] = [];
   /**
    * The column offset cache, starting with row _columnOffsetsStartingRow
    *
