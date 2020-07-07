@@ -19,7 +19,7 @@ import {
   DataGrid,
   TextRenderer,
   CellRenderer
-} from '@lumino/datagrid';
+} from 'tde-datagrid';
 
 import { Message } from '@lumino/messaging';
 
