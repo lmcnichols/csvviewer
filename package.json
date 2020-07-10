@@ -1,5 +1,5 @@
 {
-  "name": "@jupyterlab/csvviewer",
+  "name": "tde-csvviewer",
   "version": "1.0.1",
   "description": "JupyterLab modified CSV Widget",
   "homepage": "https://github.com/lomcnich/jupyterlab",
