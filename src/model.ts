@@ -194,7 +194,7 @@ export class DSVModel extends DataModel implements IDisposable {
     this._columnCount = undefined;
     this._rowCount = undefined;
     this._rowOffsets = null!;
-    this._columnOffsets = null!;
+    this.columnOffsets = null!;
     this.rawData = null!;
 
     // Clear out state associated with the asynchronous parsing.
@@ -295,27 +295,27 @@ export class DSVModel extends DataModel implements IDisposable {
       // store, or if we should cut over to a small cache.
       if (this._rowCount <= maxColumnOffsetsRows) {
         // Expand the existing column offset array for new column offsets.
-        const oldColumnOffsets = this._columnOffsets;
-        this._columnOffsets = new Uint32Array(
+        const oldColumnOffsets = this.columnOffsets;
+        this.columnOffsets = new Uint32Array(
           this._rowCount * this._columnCount
         );
-        this._columnOffsets.set(oldColumnOffsets);
-        this._columnOffsets.fill(0xffffffff, oldColumnOffsets.length);
+        this.columnOffsets.set(oldColumnOffsets);
+        this.columnOffsets.fill(0xffffffff, oldColumnOffsets.length);
       } else {
         // If not, then our cache size is at most the maximum number of rows we
         // fill in the cache at a time.
-        const oldColumnOffsets = this._columnOffsets;
-        this._columnOffsets = new Uint32Array(
+        const oldColumnOffsets = this.columnOffsets;
+        this.columnOffsets = new Uint32Array(
           Math.min(this._maxCacheGet, maxColumnOffsetsRows) * this._columnCount
         );
 
         // Fill in the entries we already have.
-        this._columnOffsets.set(
-          oldColumnOffsets.subarray(0, this._columnOffsets.length)
+        this.columnOffsets.set(
+          oldColumnOffsets.subarray(0, this.columnOffsets.length)
         );
 
         // Invalidate the rest of the entries.
-        this._columnOffsets.fill(0xffffffff, oldColumnOffsets.length);
+        this.columnOffsets.fill(0xffffffff, oldColumnOffsets.length);
         this._columnOffsetsStartingRow = 0;
       }
     }
@@ -420,21 +420,21 @@ export class DSVModel extends DataModel implements IDisposable {
 
     // Check to see if row *should* be in the cache, based on the cache size.
     let rowIndex = (row - this._columnOffsetsStartingRow) * ncols;
-    if (rowIndex < 0 || rowIndex > this._columnOffsets.length) {
+    if (rowIndex < 0 || rowIndex > this.columnOffsets.length) {
       // Row isn't in the cache, so we invalidate the entire cache and set up
       // the cache to hold the requested row.
-      this._columnOffsets.fill(0xffffffff);
+      this.columnOffsets.fill(0xffffffff);
       this._columnOffsetsStartingRow = row;
       rowIndex = 0;
     }
 
     // Check to see if we need to fetch the row data into the cache.
-    if (this._columnOffsets[rowIndex] === 0xffffffff) {
+    if (this.columnOffsets[rowIndex] === 0xffffffff) {
       // Figure out how many rows below us also need to be fetched.
       let maxRows = 1;
       while (
         maxRows <= this._maxCacheGet &&
-        this._columnOffsets[rowIndex + maxRows * ncols] === 0xffffff
+        this.columnOffsets[rowIndex + maxRows * ncols] === 0xffffffff
       ) {
         maxRows++;
       }
@@ -453,12 +453,12 @@ export class DSVModel extends DataModel implements IDisposable {
 
       // Copy results to the cache.
       for (let i = 0; i < offsets.length; i++) {
-        this._columnOffsets[rowIndex + i] = offsets[i];
+        this.columnOffsets[rowIndex + i] = offsets[i];
       }
     }
 
     // Return the offset index from cache.
-    return this._columnOffsets[rowIndex + column];
+    return this.columnOffsets[rowIndex + column];
   }
 
   /**
@@ -546,7 +546,7 @@ export class DSVModel extends DataModel implements IDisposable {
     this._rowCount = 1;
     this._startedParsing = false;
 
-    this._columnOffsets = new Uint32Array(0);
+    this.columnOffsets = new Uint32Array(0);
 
     // Clear out state associated with the asynchronous parsing.
     if (this._doneParsing === false) {
@@ -589,9 +589,9 @@ export class DSVModel extends DataModel implements IDisposable {
    *
    * #### Notes
    * The index of the first character in the data string for row r, column c is
-   * _columnOffsets[(r-this._columnOffsetsStartingRow)*numColumns+c]
+   * columnOffsets[(r-this._columnOffsetsStartingRow)*numColumns+c]
    */
-  private _columnOffsets: Uint32Array = new Uint32Array(0);
+  columnOffsets: Uint32Array = new Uint32Array(0);
   /**
    * The row that _columnOffsets[0] represents.
    */

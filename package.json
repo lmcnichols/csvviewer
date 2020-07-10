@@ -1,8 +1,8 @@
 {
   "name": "@jupyterlab/csvviewer",
-  "version": "3.0.0-alpha.0",
-  "description": "JupyterLab - CSV Widget",
-  "homepage": "https://github.com/jupyterlab/jupyterlab",
+  "version": "1.0.1",
+  "description": "JupyterLab modified CSV Widget",
+  "homepage": "https://github.com/lomcnich/jupyterlab",
   "bugs": {
     "url": "https://github.com/lmcnichols/csvviewer/issues"
   },
