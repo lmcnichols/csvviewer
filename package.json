@@ -1,6 +1,6 @@
 {
   "name": "tde-csvviewer",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "JupyterLab modified CSV Widget",
   "homepage": "https://github.com/lomcnich/jupyterlab",
   "bugs": {
