@@ -458,7 +458,13 @@ export class DSVModel extends DataModel implements IDisposable {
     }
 
     // Return the offset index from cache.
-    return this.columnOffsets[rowIndex + column];
+    const t0 = performance.now();
+    const index = this.columnOffsets[rowIndex + column];
+    performance.now();
+    const t1 = performance.now();
+    console.log('indexing took', (t1 - t0), "miliseconds");
+    return index
+
   }
 
   /**
